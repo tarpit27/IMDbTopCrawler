@@ -12,14 +12,39 @@ import org.jsoup.select.Elements;
 /**
  * @author arpit
  */
-class Fetch implements Runnable {
+class FetchRating implements Runnable {
 
     Thread t;
-    static List name = new ArrayList();
     static List rating = new ArrayList();
     Document doc = null;
 
-    Fetch(String url) throws IOException {
+    FetchRating(String url) throws IOException {
+        doc = Jsoup.connect(url).get();
+        t = new Thread(this);
+        t.start();
+    }
+
+    void fetchRating() {
+        Elements elementsRating = doc.select("td[class=ratingColumn imdbRating]");
+        for (Element listRating : elementsRating) {
+            rating.add(Double.valueOf(listRating.text()));
+        }
+    }
+
+    @Override
+    public void run() {
+        fetchRating();
+    }
+
+}
+
+class FetchTitle implements Runnable {
+
+    Thread t;
+    static List name = new ArrayList();
+    Document doc = null;
+
+    FetchTitle(String url) throws IOException {
         doc = Jsoup.connect(url).get();
         t = new Thread(this);
         t.start();
@@ -35,13 +60,6 @@ class Fetch implements Runnable {
         }
     }
 
-    void fetchRating() {
-        Elements elementsRating = doc.select("td[class=ratingColumn imdbRating]");
-        for (Element listRating : elementsRating) {
-            rating.add(Double.valueOf(listRating.text()));
-        }
-    }
-
     @Override
     public void run() {
         fetchTitle();
@@ -52,15 +70,16 @@ public class Crawl {
 
     public static void main(String[] args) throws IOException {
         String url = "http://www.imdb.com/chart/top";
-        Fetch ob = new Fetch(url);
-        ob.fetchRating();
+        FetchTitle ob1 = new FetchTitle(url);
+        FetchRating ob2 = new FetchRating(url);
         try {
-            ob.t.join();
+            ob1.t.join();
+            ob2.t.join();
         } catch (InterruptedException ex) {
-            System.out.println(ex);
+            ex.printStackTrace();
         }
-        Iterator itr1 = ob.name.iterator();
-        Iterator itr2 = ob.rating.iterator();
+        Iterator itr1 = ob1.name.iterator();
+        Iterator itr2 = ob2.rating.iterator();
         int count = 0;
         while (itr1.hasNext() && itr2.hasNext()) {
             System.out.printf("%-5d. %-70s\t%.1f\n", ++count, itr1.next(), itr2.next());
