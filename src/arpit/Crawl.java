@@ -12,11 +12,17 @@ import org.jsoup.select.Elements;
 /**
  * @author arpit
  */
-class FetchRating implements Runnable {
+abstract class Fetch {
 
     Thread t;
+    static List name = new ArrayList();
     static List rating = new ArrayList();
     Document doc = null;
+
+    abstract void fetch();
+}
+
+class FetchRating extends Fetch implements Runnable {
 
     FetchRating(String url) throws IOException {
         doc = Jsoup.connect(url).get();
@@ -24,7 +30,8 @@ class FetchRating implements Runnable {
         t.start();
     }
 
-    void fetchRating() {
+    @Override
+    void fetch() {
         Elements elementsRating = doc.select("td[class=ratingColumn imdbRating]");
         for (Element listRating : elementsRating) {
             rating.add(Double.valueOf(listRating.text()));
@@ -33,16 +40,12 @@ class FetchRating implements Runnable {
 
     @Override
     public void run() {
-        fetchRating();
+        fetch();
     }
 
 }
 
-class FetchTitle implements Runnable {
-
-    Thread t;
-    static List name = new ArrayList();
-    Document doc = null;
+class FetchTitle extends Fetch implements Runnable {
 
     FetchTitle(String url) throws IOException {
         doc = Jsoup.connect(url).get();
@@ -50,7 +53,8 @@ class FetchTitle implements Runnable {
         t.start();
     }
 
-    void fetchTitle() {
+    @Override
+    void fetch() {
         Elements elementsName = doc.select("td[class=titleColumn]");
         for (Element outerName : elementsName) {
             Elements title = elementsName.select("a[title]");
@@ -62,7 +66,7 @@ class FetchTitle implements Runnable {
 
     @Override
     public void run() {
-        fetchTitle();
+        fetch();
     }
 }
 
@@ -79,7 +83,7 @@ public class Crawl {
             ex.printStackTrace();
         }
         Iterator itr1 = ob1.name.iterator();
-        Iterator itr2 = ob2.rating.iterator();
+        Iterator itr2 = ob1.rating.iterator();
         int count = 0;
         while (itr1.hasNext() && itr2.hasNext()) {
             System.out.printf("%-5d. %-70s\t%.1f\n", ++count, itr1.next(), itr2.next());
