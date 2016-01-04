@@ -1,2 +1,2 @@
 # IMDbTopCrawler
-Java Application to fetch 250 top rated movies of all time.
+Java Application to fetch top rated movies of all time.
